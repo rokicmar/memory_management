@@ -1,4 +1,5 @@
 #include <iostream>
+#include <memory>
 
 using namespace std;
 
@@ -7,10 +8,12 @@ class Node
 public:
     Node(const int v) :
         next(nullptr),
+        prev(nullptr),
         value(v)
     {}
 
-    Node* next;
+    std::shared_ptr<Node> next;
+    std::shared_ptr<Node> prev;
     int value;
 };
 
@@ -18,44 +21,43 @@ class List
 {
 public:
     List();
-    void add(Node* node);
-    Node* get(const int value);
+    void add(std::shared_ptr<Node> node);
+    std::shared_ptr<Node> get(const int value);
 
 private:
-    Node* first;
+    std::shared_ptr<Node> first;
+    std::shared_ptr<Node> last;
 };
 
 List::List() :
-    first(nullptr)
+    first(nullptr),
+    last(nullptr)
 {}
 
-void List::add(Node* node)
+void List::add(std::shared_ptr<Node> node)
 {
-    if(!first)
-    {
+    if (!first) {
         first = node;
+        last = first;
     }
-    else
-    {
-        Node* current = first;
-        while(current->next)
-        {
-            current = current->next;
-        }
-        current->next = node;
+    else {
+        first->prev = node;
+        node->next = first;
+
+        first = node;
     }
 }
 
-Node* List::get(const int value)
+std::shared_ptr<Node> List::get(const int value)
 {
-    if(!first)
+    if(!last)
     {
         cout << "List is empty!" << endl;
         return nullptr;
     }
     else
     {
-        Node* current = first;
+        std::shared_ptr<Node> current = last;
         do
         {
             if(current->value == value)
@@ -66,9 +68,10 @@ Node* List::get(const int value)
             else
             {
                 cout << "Going through " << current->value << endl;
-                current = current->next;
+                current = current->prev;
             }
         } while(current);
+
         cout << "Not found: value " << value << endl;
         return nullptr;
     }
@@ -77,14 +80,15 @@ Node* List::get(const int value)
 int main()
 {
     List lista;
-    Node* node4 = new Node(4);
-    Node* node7 = new Node(7);
+    auto node4 = std::make_shared<Node>(4);
+    auto node7 = std::make_shared<Node>(7);
 
     lista.add(node4);
-    lista.add(new Node(2));
+    lista.add(std::make_shared<Node>(2));
     lista.add(node7);
-    lista.add(new Node(9));
+    lista.add(std::make_shared<Node>(9));
     auto node = lista.get(1);
+    node = lista.get(4);
 
     if (node)
         cout << node->value << '\n';
